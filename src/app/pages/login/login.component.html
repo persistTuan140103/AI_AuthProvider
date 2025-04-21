@@ -1,0 +1,37 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="card-title text-center mb-4">Đăng nhập</h4>
+          <!-- Error Message Display -->
+          <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+            <div class="mb-3">
+              <label for="email" class="form-label">User Name</label>
+              <input type="text" id="email" class="form-control" name="email" [(ngModel)]="email" required
+                ngbAutofocus />
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Mật khẩu</label>
+              <input type="password" id="password" class="form-control" name="password" [(ngModel)]="password"
+                required />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" [disabled]="loginForm.invalid || isLoading">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status"
+                aria-hidden="true"></span>
+              Đăng nhập
+            </button>
+          </form>
+        </div>
+      </div>
+      <span class="mt-2 d-block text-center">
+        Hãy đăng nhập bằng tài khoản trường
+        <a href="https://sinhvien1.tlu.edu.vn/#/login">Thủy Lợi University</a>
+      </span>
+    </div>
+
+
+  </div>
+</div>
