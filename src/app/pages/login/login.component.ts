@@ -6,6 +6,14 @@ import { catchError, pipe, Subscription, throwError, timer } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from '../../components/toasts/toast.service';
 import { ActivatedRoute } from '@angular/router';
+
+interface CallbackVscode{
+  access_token: string;
+  displayName: string;
+  email: string;
+  active: boolean;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -82,26 +90,31 @@ export class LoginComponent implements OnDestroy, OnInit{
       .subscribe(
         (res) => {
           // console.log(res);
-          // this.tluService.getUserInfo().pipe(
-          //   catchError(error => {
-          //     this.isLoading = false;
-          //     return this.handleError(error);
-          //   })
-          // )
-          // .subscribe(
-          //   (userInfo) => {
-          //     console.log(userInfo);
-          //     localStorage.setItem('token', res.access_token);
-          //     localStorage.setItem('userInfo', JSON.stringify(userInfo));
-          //     this.isLoading = false;
-          //     this.toastService.showSuccess("Đăng nhập thành công!");
-          //   }
-          // );
           localStorage.setItem('access_token', res.access_token);
-          this.isLoading = false;
-          this.toastService.showSuccess("Đăng nhập thành công!")
+          this.tluService.getUserInfo().pipe(
+            catchError(error => {
+              this.isLoading = false;
+              return this.handleError(error);
+            })
+          )
+          .subscribe(
+            (userInfo) => {
+              console.log(userInfo);
+              localStorage.setItem('token', res.access_token);
+              localStorage.setItem('userInfo', JSON.stringify(userInfo));
+              this.isLoading = false;
+              this.toastService.showSuccess("Đăng nhập thành công!");
+              this.redirectToVSCode({
+                access_token: res.access_token,
+                displayName: userInfo.displayName,
+                email: userInfo.email,
+                active: userInfo.active
+              })
+            }
+          );
+          // this.isLoading = false;
+          // this.toastService.showSuccess("Đăng nhập thành công!")
           
-          this.redirectToVSCode(res.access_token)
         }
       )
 
@@ -109,7 +122,7 @@ export class LoginComponent implements OnDestroy, OnInit{
 
 
   // Phương thức chuyển hướng về VSCode với thông tin đăng nhập
-  private redirectToVSCode(access_token: string): void {
+  private redirectToVSCode(data: CallbackVscode): void {
     if (!this.redirectUri || !this.state) {
       console.error('Missing redirect URI or state');
       this.toastService.showError("Thiếu thông tin chuyển hướng. Vui lòng thử lại.");
@@ -119,8 +132,11 @@ export class LoginComponent implements OnDestroy, OnInit{
     try {
       // Tạo URL redirect với các tham số cần thiết
       const redirectUrl = new URL(this.redirectUri);
-      redirectUrl.searchParams.append('access_token', access_token);
+      redirectUrl.searchParams.append('access_token', data.access_token);
+      redirectUrl.searchParams.append('displayName', data.displayName);
+      redirectUrl.searchParams.append('email', data.email);
       redirectUrl.searchParams.append('state', this.state);
+      redirectUrl.searchParams.append('active', data.active.toString());
       
       window.location.href = redirectUrl.toString();
     } catch (error) {
